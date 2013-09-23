@@ -39,11 +39,18 @@ class Board
 
   end
 
-  def explore(coord)
+  def explore(neighbors)
 
   end
 
   def reveal_tile(coord)
+    neighbors = check_neighbors(coord)
+    if neighbors.length > 0
+      board[coord[0][coord[1]].display_value = neighbors.length
+    else
+      board[coord[0][coord[1]].display_value = "_"
+      explore(neighbors)
+    end
 
   end
 
