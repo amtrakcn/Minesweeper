@@ -1,10 +1,11 @@
 class Board
   attr_accessor :board
-
+  attr_reader :remaining_mines
   def initialize
     @board = []
     create_board(9)
     deploy_mines(10)
+    remaining_mines = 10
   end
 
   def create_board(grid_size)
@@ -36,6 +37,44 @@ class Board
     human = HumanPlayer.new()
 
 
+  end
+
+  def explore(coord)
+
+  end
+
+  def reveal_tile(coord)
+
+  end
+
+  def flag_tile(coord)
+    board[coord[0]][coord[1]].display_value = ("F")
+    remaining_mines -= 1 if board[coord[0]][coord[1]].has_mine
+  end
+
+  def check_neighbors(coord)
+    neighbor_bombs = []
+    (-1..1).to_a.each do |index1|
+      (-1..1).to_a.each do |index2|
+        next if index1 == 0  && index2 == 0
+        new_coord = [coord[0]+index1, coord[1]+index2]
+
+        if is_valid?(new_coord)
+          neighbor_bombs << new_coord if board[new_coord[0]][new_coord[1]].has_bomb
+        end
+      end
+    end
+
+    neighbor_bombs
+  end
+
+  def is_valid?(coord)
+    if coord[0] >= 0 && coord[0] < board.length - 1
+      if coord[1] >= 0 && coord[1] < board.length - 1
+        return true
+      end
+    end
+    false
   end
 end
 
