@@ -33,6 +33,8 @@ class Board
   end
 
   def play
+    human = HumanPlayer.new()
+
 
   end
 end
@@ -57,5 +59,20 @@ class HumanPlayer
 
       puts row.join(" ")
     end
+  end
+
+  def get_move
+    user_move = {}
+
+    puts "What tile would you like to select (Separate x and y coordinate with a space)?"
+    coords_input = gets.chomp
+    coord = coords_input.split(" ")
+    coord.map! { |el| el.to_i }
+
+    puts "Would you like to reveal or flag the tile (f or r)?"
+    move = gets.chomp
+    user_move[move] = coord
+
+    user_move
   end
 end
