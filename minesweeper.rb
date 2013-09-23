@@ -39,19 +39,27 @@ class Board
 
   end
 
-  def explore(neighbors)
-
-  end
-
   def reveal_tile(coord)
-    neighbors = check_neighbors(coord)
-    if neighbors.length > 0
-      board[coord[0][coord[1]].display_value = neighbors.length
-    else
-      board[coord[0][coord[1]].display_value = "_"
-      explore(neighbors)
-    end
+    unexplored_tiles = [coord]
 
+    until unexplored_tiles.length == 0
+      p unexplored_tiles
+      curr_cord = unexplored_tiles.shift
+
+      neighbors = check_neighbors(curr_cord)
+      bombs = neighbors[:unsafe].length
+
+      if bombs > 0
+        board[curr_cord[0]][curr_cord[1]].display_value = bombs
+      else
+        board[curr_cord[0]][curr_cord[1]].display_value = "_"
+        neighbors[:safe].each do |el|
+          if board[el[0]][el[1]].display_value == "*"
+            unexplored_tiles << el unless unexplored_tiles.include?(el)
+          end
+        end
+      end
+    end
   end
 
   def flag_tile(coord)
@@ -60,24 +68,36 @@ class Board
   end
 
   def check_neighbors(coord)
-    neighbor_bombs = []
+    neighbors = {}
+    neighbors[:safe] = []
+    neighbors[:unsafe] = []
+
     (-1..1).to_a.each do |index1|
       (-1..1).to_a.each do |index2|
         next if index1 == 0  && index2 == 0
         new_coord = [coord[0]+index1, coord[1]+index2]
 
-        if is_valid?(new_coord)
-          neighbor_bombs << new_coord if board[new_coord[0]][new_coord[1]].has_bomb
+        if is_valid?(new_coord) && not_flagged?(new_coord)
+          if board[new_coord[0]][new_coord[1]].has_bomb
+            neighbors[:unsafe] << new_coord
+          else
+            neighbors[:safe] << new_coord
+          end
         end
       end
     end
 
-    neighbor_bombs
+    neighbors
+  end
+
+  def not_flagged?(coord)
+    return true unless board[coord[0]][coord[1]].display_value == "F"
+    false
   end
 
   def is_valid?(coord)
-    if coord[0] >= 0 && coord[0] < board.length - 1
-      if coord[1] >= 0 && coord[1] < board.length - 1
+    if coord[0] >= 0 && coord[0] < board.length
+      if coord[1] >= 0 && coord[1] < board.length
         return true
       end
     end
