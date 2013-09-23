@@ -5,7 +5,8 @@ class Board
     @board = []
     create_board(9)
     deploy_mines(10)
-    remaining_mines = 10
+    @remaining_mines = 10
+    play
   end
 
   def create_board(grid_size)
@@ -36,26 +37,54 @@ class Board
   def play
     human = HumanPlayer.new()
 
+    until remaining_mines == 0
+      human.display_board(board)
 
+      user_move = human.get_move
+      if user_move.has_key?("r")
+        reveal_tile(user_move["r"])
+      else
+        flag_tile(user_move["f"])
+      end
+
+      if game_lost?
+        puts "sorry you lose"
+        exit
+      end
+    end
+
+    puts "congratulations you win"
+  end
+
+  def game_lost?
+    board.each do |row|
+      row.each do |element|
+        return true if element.display_value == "B"
+      end
+    end
+    false
   end
 
   def reveal_tile(coord)
-    unexplored_tiles = [coord]
+    if board[coord[0]][coord[1]].has_bomb
+      board[coord[0]][coord[1]].display_value = "B"
+    else
+      unexplored_tiles = [coord]
 
-    until unexplored_tiles.length == 0
-      p unexplored_tiles
-      curr_cord = unexplored_tiles.shift
+      until unexplored_tiles.length == 0
+        curr_coord = unexplored_tiles.shift
 
-      neighbors = check_neighbors(curr_cord)
-      bombs = neighbors[:unsafe].length
+        neighbors = check_neighbors(curr_coord)
+        bombs = neighbors[:unsafe].length
 
-      if bombs > 0
-        board[curr_cord[0]][curr_cord[1]].display_value = bombs
-      else
-        board[curr_cord[0]][curr_cord[1]].display_value = "_"
-        neighbors[:safe].each do |el|
-          if board[el[0]][el[1]].display_value == "*"
-            unexplored_tiles << el unless unexplored_tiles.include?(el)
+        if bombs > 0
+          board[curr_coord[0]][curr_coord[1]].display_value = bombs
+        else
+          board[curr_coord[0]][curr_coord[1]].display_value = "_"
+          neighbors[:safe].each do |el|
+            if board[el[0]][el[1]].display_value == "*"
+              unexplored_tiles << el unless unexplored_tiles.include?(el)
+            end
           end
         end
       end
@@ -64,7 +93,7 @@ class Board
 
   def flag_tile(coord)
     board[coord[0]][coord[1]].display_value = ("F")
-    remaining_mines -= 1 if board[coord[0]][coord[1]].has_mine
+    @remaining_mines -= 1 if board[coord[0]][coord[1]].has_bomb
   end
 
   def check_neighbors(coord)
@@ -77,11 +106,11 @@ class Board
         next if index1 == 0  && index2 == 0
         new_coord = [coord[0]+index1, coord[1]+index2]
 
-        if is_valid?(new_coord) && not_flagged?(new_coord)
+        if is_valid?(new_coord)
           if board[new_coord[0]][new_coord[1]].has_bomb
             neighbors[:unsafe] << new_coord
           else
-            neighbors[:safe] << new_coord
+            neighbors[:safe] << new_coord if not_flagged?(new_coord)
           end
         end
       end
